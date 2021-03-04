@@ -7,13 +7,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/UnicodeJsps"/>
-	<classpathentry kind="lib" path="/UnicodeJsps/WebContent/WEB-INF/lib/cldr.jar"/>
-	<classpathentry kind="lib" path="/UnicodeJsps/WebContent/WEB-INF/lib/guava-sources.jar"/>
-	<classpathentry kind="lib" path="/UnicodeJsps/WebContent/WEB-INF/lib/guava.jar"/>
-	<classpathentry kind="lib" path="/UnicodeJsps/WebContent/WEB-INF/lib/icu4j-src.jar"/>
-	<classpathentry kind="lib" path="/UnicodeJsps/WebContent/WEB-INF/lib/icu4j.jar"/>
-	<classpathentry kind="lib" path="/UnicodeJsps/WebContent/WEB-INF/lib/utilities-src.jar"/>
-	<classpathentry kind="lib" path="/UnicodeJsps/WebContent/WEB-INF/lib/utilities.jar"/>
-	<classpathentry kind="lib" path="/UnicodeJsps/WebContent/WEB-INF/lib/xercesImpl.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cldr-code"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

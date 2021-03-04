@@ -59,6 +59,8 @@ NS ; Named_Sequences
 NSP ; Named_Sequences_Prov
 SV ; Standardized_Variant
 
+EXEMP; Exemplar_Main
+
 cjkCheungBauerIndex ; kCheungBauerIndex
 cjkCowles ; kCowles
 cjkDaeJaweon ; kDaeJaweon
