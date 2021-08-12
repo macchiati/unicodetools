@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,6 +20,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.unicode.cldr.draft.FileUtilities;
+import org.unicode.cldr.tool.Option;
+import org.unicode.cldr.tool.Option.Options;
+import org.unicode.cldr.tool.Option.Params;
 import org.unicode.cldr.util.CLDRPaths;
 import org.unicode.cldr.util.Counter;
 import org.unicode.text.utility.Settings;
@@ -28,6 +31,7 @@ import org.unicode.tools.MultiComparator;
 import org.unicode.tools.emoji.CountEmoji.Category;
 import org.unicode.tools.emoji.EmojiData.VariantFactory;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
@@ -52,8 +56,6 @@ import com.ibm.icu.util.ULocale;
  *
  */
 public class EmojiFrequency {
-    static final String DATA_DIR = "/Volumes/GoogleDrive/My Drive/workspace/DATA";
-    private static final String OUTDIR = CLDRPaths.GEN_DIRECTORY + "../emoji/frequency";
 
     private static final String UNSPECIFIED_GENDER = "⚬";
     private static final String UNSPECIFIED_SKIN = "⬚";
@@ -63,10 +65,47 @@ public class EmojiFrequency {
     static final EmojiOrder order = EmojiOrder.of(Emoji.VERSION_LAST_RELEASED);
     static final UnicodeSet SKIP = new UnicodeSet("[© ® ™]").freeze();
 
+    private enum MyOptions {
+	sourceDirectory(new Params().setMatch(".*").setDefault(Settings.UnicodeTools.UNICODETOOLS_REPO_DIR + "/../private/DATA")),
+	targetDirectory(new Params().setMatch(".*").setDefault(CLDRPaths.GEN_DIRECTORY + "../emoji/frequency")),
+	verbose(new Params().setHelp("verbose debugging messages"))
+	;
+
+	// BOILERPLATE TO COPY
+	final Option option;
+
+	private MyOptions(Params params) {
+	    option = new Option(this, params);
+	}
+
+	private static Options myOptions = new Options();
+	static {
+	    for (MyOptions option : MyOptions.values()) {
+		myOptions.add(option, option.option);
+	    }
+	}
+
+	private static Set<String> parse(String[] args) {
+	    return myOptions.parse(MyOptions.values()[0], args, true);
+	}
+    }
+
+    private static String DATA_DIR;
+    private static String OUTDIR;
 
     public static void main(String[] args) {
-	System.out.println("\n\n***Twitter***\n");
+	MyOptions.parse(args);
+	DATA_DIR = MyOptions.sourceDirectory.option.getValue();
+	OUTDIR = MyOptions.targetDirectory.option.getValue();
+
+	showCounts("windows.tsv", Windows.countInfo.keyToCount, null);
+
 	showCounts("twitter.tsv", Twitter.countInfo.keyToCount, null);
+
+	showCounts("gboard.tsv", GBoard.countInfo.keyToCount, null);
+
+	System.out.println("\n\n***Facebook***\n");
+	showCounts("facebook.tsv", Facebook.countInfo.keyToCount, null);
 
 	//        System.out.println("\n\n***MAIN***\n");
 	//        showCounts("gboardMainRaw.tsv", GBoardCounts.countsRaw, null);
@@ -74,21 +113,19 @@ public class EmojiFrequency {
 	//        System.out.println("\n\n***W/O FE0F***\n");
 	//        showCounts("gboardNoFE0F.tsv", GBoardCounts.countsWithoutFe0f, GBoardCounts.countsRaw);
 	//        
-	System.out.println("\n\n***CHARS***\n");
-	showCountsSimple("gboardAllChars.tsv", CharFrequency.localeToCountInfo.get("001").keyToCount, null);
+	//	System.out.println("\n\n***CHARS***\n");
+	//	showCountsSimple("gboardAllChars.tsv", CharFrequency.localeToCountInfo.get("001").keyToCount, null);
 
-	System.out.println("\n\n***RawSequencesToCount***\n");
-	showSequencesToCount("RawSequencesToCount.tsv");
+//	System.out.println("\n\n***RawSequencesToCount***\n");
+//	showSequencesToCount("RawSequencesToCount.tsv");
 
-	System.out.println("\n\n***MAIN***\n");
-	showCounts("gboardMain.tsv", GBoardCounts.localeToCountInfo.get("001").keyToCount, null);
+//	System.out.println("\n\n***MAIN***\n");
+//	showCounts("gboardMain.tsv", GBoardCounts.localeToCountInfo.get("001").keyToCount, null);
 	//showCounts("gboardDE.tsv", GBoardCounts.localeToCountInfo.get("de").keyToCount, null);
 
 	//	System.out.println("\n\n***EmojiTracker***\n");
 	//	showCounts("emojiTracker.tsv", EmojiTracker.countInfo.keyToCount, null);
 
-	System.out.println("\n\n***Facebook***\n");
-	showCounts("facebook.tsv", Facebook.countInfo.keyToCount, null);
 
 	System.out.println("\n\n***INFO***\n");
 	showInfo("emojiInfo.tsv");
@@ -240,7 +277,7 @@ public class EmojiFrequency {
     static final UnicodeSet HACK_FE0F = new UnicodeSet("[©®™✔]").freeze();
 
     private static void showCounts(String filename, Map<String,Long> x, Map<String,Long> withFe0f) {
-
+	System.out.println("\nWriting " + filename);
 	try (PrintWriter out = FileUtilities.openUTF8Writer(OUTDIR, filename)) {
 	    boolean normal = withFe0f == null;
 	    out.println("Hex\tCount"
@@ -257,7 +294,7 @@ public class EmojiFrequency {
 		}
 		Long count = entry.getValue();
 		Long countWithFe0f = normal ? 0 : withFe0f.get(term + Emoji.EMOJI_VARIANT);
-		Long adjusted = GBoardCounts.toAddAdjusted(term, countWithFe0f, count);
+		Long adjusted = toAddAdjusted(term, countWithFe0f, count);
 		out.println(hex(term)
 			+ "\t" + (count == 0 ? "" : count+"")
 			+ "\t" + (normal ? ++rank : countWithFe0f)
@@ -401,15 +438,17 @@ public class EmojiFrequency {
 	    return hexIndex;
 	}
     }
+    
+	private static long toAddAdjusted(String term, Long countWithFe0f, Long countWithoutFe0f) {
+	    return HACK_FE0F.contains(term) ? countWithFe0f * 4 : countWithoutFe0f;
+	}
+
     static class GBoardCounts {
 	private static final String FREQ_SOURCE = DATA_DIR+"/frequency/emoji/";
 	//static Counter<String> counts = new Counter<>();
 	static Map<String, CountInfo> localeToCountInfo = new LinkedHashMap<>();
 	//        static Counter<String> countsRaw = new Counter<>();
 	//        static Counter<String> countsWithoutFe0f = new Counter<>();
-	private static long toAddAdjusted(String term, Long countWithFe0f, Long countWithoutFe0f) {
-	    return HACK_FE0F.contains(term) ? countWithFe0f * 4 : countWithoutFe0f;
-	}
 	// Android API Distribution
 	// from sheet: 
 	final static Map<Integer, Double> yearToWeight = ImmutableMap.<Integer, Double>builder()
@@ -720,90 +759,88 @@ public class EmojiFrequency {
     }
 
     static class Twitter {
-	//code	emoji	Twemoji	description	iPhone	Android	Web	Lite	TweetDeck	Total TOO client
-	//1f602	😂		Face with tears of joy	1,808,011,468	1,651,744,252	79,888,884	159,574,416	2,263,084	3,699,219,020
-
 	static CountInfo countInfo;
 	static {
+	    //code	emoji	Twemoji	description	iPhone	Android	Web	Lite	TweetDeck	Total TOO client
+	    //1f602	😂		Face with tears of joy	1,808,011,468	1,651,744,252	79,888,884	159,574,416	2,263,084	3,699,219,020
+
 	    int charField = 1;
 	    int hexField = 0;
 	    int countField = 9;
 	    int totalFields = 10;
-	    Counter<String> _counts = new Counter<>();
-
-	    try (BufferedReader in = FileUtilities.openFile(DATA_DIR+"/frequency/emoji/", "twitterRaw.tsv")) {
-		int lineCount = 0;
-		while (true) {
-		    String line = in.readLine();
-		    if (line == null) break;
-		    if (line.startsWith("#")) {
-			continue;
-		    }
-		    ++lineCount;
-		    String[] parts = line.split("\t");
-		    if (parts.length != totalFields) {
-			throw new IllegalArgumentException("Bad data: " + line);
-		    }
-		    String rawCodes = parts[charField];
-		    String hexCodes = parts[hexField].replace("-", " ").toUpperCase(Locale.ROOT).replace(" FE0F", "");
-		    hexCodes = Utility.hex(Utility.fromHex(hexCodes, false, 2));
-		    String hexOfRawCodes = Utility.hex(rawCodes).replace(" FE0F", "");
-		    if (!hexCodes.equals(hexOfRawCodes)) {
-			throw new IllegalArgumentException("mismatched emoji (seq) and hex: " + line);
-		    }
-		    long count = Long.parseLong(parts[countField].replace(",",""));
-		    String codes = normalizeEmoji(rawCodes, _counts, count);
-		    addCount(_counts, codes, count);
-		}
-	    } catch (IOException e) {
-		throw new ICUUncheckedIOException(e);
-	    }
-	    countInfo = new CountInfo(_counts, SORTED, null);
+	    countInfo = readFile("twitterRaw.tsv", charField, hexField, countField, totalFields);
 	}
     }
+
+    static class Windows {
+	static final CountInfo countInfo;
+	static {
+	    // 😭	6944			
+	    // 👍	6128			
+	    final int charField = 0;
+	    final int hexField = -1;
+	    final int countField = 1;
+	    final int totalFields = 2;
+	    countInfo = readFile("windowsRaw.tsv", charField, hexField, countField, totalFields);
+	}
+    }
+    
+    static class GBoard {
+	static final CountInfo countInfo;
+	static {
+	    //#emoji	count
+	    //😂	4359034630
+	    final int charField = 0;
+	    final int hexField = -1;
+	    final int countField = 1;
+	    final int totalFields = 2;
+	    countInfo = readFile("gboardRaw.tsv", charField, hexField, countField, totalFields);
+	}
+    }
+
 
     static class Facebook {
-	// File name	Codepoints	UTC Name	Emoji	Emoji Index	Hit Index	Relative Frequency	Group	Subgroup																	
-	// emoji_FACE-WITH-TEARS-OF-JOY_1f602	1F602	face with tears of joy	😂	3	1	1000000000	Smileys & People	face-positive																	
+	//File name	Codepoints	UTC Name	Emoji	Emoji Index	Hit Index	Relative Frequency	Group	Subgroup
+	//emoji_-RED-HEART_2764_fe0f	2764 FE0F	 red heart	❤️	134	1	1,000,000,000	Smileys & Emotion	emotion
+	
+	static int emojiField = 3, hexField = 1, countField = 6, totalFields = 9;
+	static CountInfo countInfo = readFile("facebookRaw.tsv", emojiField, hexField, countField, totalFields);
 
-	// old
-	// 😀   emoji_GRINNING-FACE_1f600   1F600   grinning face   1   28  98597505    Smileys & People    face-positive
-	static int emojiField = 3, hexField = 1, freqField = 6, fieldLen = 9;
-	static CountInfo countInfo;
-	static {
-	    Counter<String> _counts = new Counter<>();
-
-	    int lineCount = 0;
-	    String line = null;
-	    try (BufferedReader in = FileUtilities.openFile(DATA_DIR+"/frequency/emoji/", "facebookRaw.tsv")) {
-		while (true) {
-		    line = in.readLine();
-		    if (line == null) break;
-		    ++lineCount;
-		    if (line.startsWith("\uFEFF")) {
-			line = line.substring(1);
-		    }
-		    if (line.startsWith("#")) {
-			continue;
-		    }
-		    String[] parts = line.split("\t");
-		    if (parts.length != fieldLen) {
-			throw new IllegalArgumentException("Wrong number of fields: «" + line + "»");
-		    }
-		    // String hexCodes = parts[1];
-		    String hexCodes = parts[hexField];
-		    //long count = Math.round(Double.parseDouble(parts[2].replace(",","")));
-		    long count = Math.round(Double.parseDouble(parts[freqField]));
-		    String codes = normalizeHexEmoji(hexCodes, _counts, count);
-		    //String codes = parts[emojiField];
-		    addCount(_counts, codes, count);
-		}
-	    } catch (Exception e) {
-		throw new ICUUncheckedIOException("Bad hex at " + lineCount + "\t«" + line + "»", e);
-	    }
-	    countInfo = new CountInfo(_counts, SORTED, null);
-	}
+//	static {
+//	    Counter<String> _counts = new Counter<>();
+//
+//	    int lineCount = 0;
+//	    String line = null;
+//	    try (BufferedReader in = FileUtilities.openFile(DATA_DIR+"/frequency/emoji/", "facebookRaw.tsv")) {
+//		while (true) {
+//		    line = in.readLine();
+//		    if (line == null) break;
+//		    ++lineCount;
+//		    if (line.startsWith("\uFEFF")) {
+//			line = line.substring(1);
+//		    }
+//		    if (line.startsWith("#")) {
+//			continue;
+//		    }
+//		    String[] parts = line.split("\t");
+//		    if (parts.length != fieldLen) {
+//			throw new IllegalArgumentException("Wrong number of fields: «" + line + "»");
+//		    }
+//		    // String hexCodes = parts[1];
+//		    String hexCodes = parts[hexField];
+//		    //long count = Math.round(Double.parseDouble(parts[2].replace(",","")));
+//		    long count = Math.round(Double.parseDouble(parts[freqField]));
+//		    String codes = normalizeHexEmoji(hexCodes, _counts, count);
+//		    //String codes = parts[emojiField];
+//		    addCount(_counts, codes, count);
+//		}
+//	    } catch (Exception e) {
+//		throw new ICUUncheckedIOException("Bad hex at " + lineCount + "\t«" + line + "»", e);
+//	    }
+//	    countInfo = new CountInfo(_counts, SORTED, null);
+//	}
     }
+    
     static UnicodeSet DUPS = new UnicodeSet();
 
     private static String normalizeEmoji(String rawCodes, Counter<String> stripped, long counts) {
@@ -887,5 +924,46 @@ public class EmojiFrequency {
 	    int debug = 0;
 	}
 	return c.add(nn, count);
+    }
+
+    static final Splitter TAB = Splitter.on('\t').trimResults();
+
+    public static CountInfo readFile(final String fileName, final int charField, final int hexField, final int countField,
+	    final int totalFields) {
+	System.out.println("\n# Reading " + fileName);
+	Counter<String> _counts = new Counter<>();
+	int lineCount = 0;
+	String line = null;
+	try (BufferedReader in = FileUtilities.openFile(DATA_DIR+"/frequency/emoji/", fileName)) {
+	    while (true) {
+		line = in.readLine();
+		if (line == null) break;
+		++lineCount;
+		String trimmed = line.trim();
+		if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+		    continue;
+		}
+		String[] parts = line.split("\t");
+		if (parts.length != totalFields) {
+		    throw new IllegalArgumentException(lineCount + ") wrong number of fields in " + line
+			    + " => " + Arrays.asList(parts) + ", expected " + totalFields + " fields");
+		}
+		String rawCodes = parts[charField];
+		if (hexField >= 0) {
+		    String hexCodes = parts[hexField].replace("-", " ").toUpperCase(Locale.ROOT).replace(" FE0F", "");
+		    hexCodes = Utility.hex(Utility.fromHex(hexCodes, false, 2));
+		    String hexOfRawCodes = Utility.hex(rawCodes).replace(" FE0F", "");
+		    if (!hexCodes.equals(hexOfRawCodes)) {
+			throw new IllegalArgumentException("mismatched emoji (seq) and hex: " + line);
+		    }
+		}
+		long count = Long.parseLong(parts[countField].replace(",",""));
+		String codes = normalizeEmoji(rawCodes, _counts, count);
+		addCount(_counts, codes, count);
+	    }
+	} catch (IOException e) {
+	    throw new ICUUncheckedIOException("Problem at line " + lineCount + ": «" + line + "»", e);
+	}
+	return new CountInfo(_counts, SORTED, null);
     }
 }

@@ -10,10 +10,13 @@ import java.util.Set;
 
 import org.unicode.cldr.util.props.UnicodeProperty;
 import org.unicode.props.IndexUnicodeProperties;
+import org.unicode.props.PropertyLister;
 import org.unicode.props.PropertyStatus;
 import org.unicode.props.PropertyStatus.PropertyScope;
 import org.unicode.props.PropertyType;
 import org.unicode.props.UcdProperty;
+import org.unicode.props.UcdPropertyValues;
+import org.unicode.props.UcdPropertyValues.Binary;
 import org.unicode.props.ValueCardinality;
 import org.unicode.text.utility.Settings;
 
@@ -53,17 +56,17 @@ public class ListProps {
 //            System.out.println(sc.size());
 //            return;
 //        }
-//        if (true) {
-//            UnicodeSet ep = latest.loadEnum(UcdProperty.Extended_Pictographic, UcdPropertyValues.Binary.class).getSet(Binary.Yes);
-//            UnicodeSet em = latest.loadEnum(UcdProperty.Emoji, UcdPropertyValues.Binary.class).getSet(Binary.Yes);
-//            UnicodeSet combined = new UnicodeSet(ep).addAll(em).freeze();
-//            PropertyLister pl = new PropertyLister(latest);
-//            System.out.println(
-//                    pl.listSet(combined, 
-//                            UcdProperty.Extended_Pictographic.toString(),
-//                            new StringBuilder()));
-//            return;
-//        }
+        if (false) {
+            UnicodeSet ep = latest.loadEnum(UcdProperty.Extended_Pictographic, UcdPropertyValues.Binary.class).getSet(Binary.Yes);
+            UnicodeSet em = latest.loadEnum(UcdProperty.Emoji, UcdPropertyValues.Binary.class).getSet(Binary.Yes);
+            UnicodeSet combined = new UnicodeSet(ep).addAll(em).freeze();
+            PropertyLister pl = new PropertyLister(latest);
+            System.out.println(
+                    pl.listSet(combined, 
+                            UcdProperty.Extended_Pictographic.toString(),
+                            new StringBuilder()));
+            return;
+        }
         PropertyType lastType = null;
         Set<String> skipped = new LinkedHashSet<>();
         Set<String> failures = new LinkedHashSet<>();
