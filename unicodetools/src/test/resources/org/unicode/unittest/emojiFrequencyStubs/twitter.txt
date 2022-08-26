@@ -1,0 +1,7 @@
+# Data from ABC, 2019-03-17
+
+\x{1F602}         ; 57686831   # 😂 face with tears of joy
+
+\x{31 FE0F 20E3}  ; 139909      # 1️⃣ keycap: 1
+
+\x{1F3CC FE0F}    ; 53769       # 🏌️ person golfing
