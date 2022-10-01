@@ -343,3 +343,6 @@ emoji/*/emoji-sequences; RGI_Emoji_Tag_Sequence
 emoji/*/emoji-zwj-sequences; RGI_Emoji_Zwj_Sequence
 
 #emoji/*/emoji-test ; Emoji_Short_Name
+
+emoji/*/emoji-variation-sequences; Emoji_Variation_Sequences
+

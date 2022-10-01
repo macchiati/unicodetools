@@ -27,6 +27,8 @@ idtype ; Identifier_Type
 idns ; Idn_Status
 idn8 ; Idn_2008
 
+# EQual ; Emoji_Qualification
+
 # ================================================
 # String Properties
 # ================================================
@@ -58,6 +60,7 @@ ESB ; Emoji_SB
 NS ; Named_Sequences
 NSP ; Named_Sequences_Prov
 SV ; Standardized_Variant
+EmojiSV ; Emoji_Variation_Sequences
 
 cjkCheungBauerIndex ; kCheungBauerIndex
 cjkCowles ; kCowles
