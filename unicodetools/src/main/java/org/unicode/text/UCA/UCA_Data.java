@@ -22,7 +22,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import org.unicode.text.UCA.UCA.Remap;
 import org.unicode.text.UCD.Normalizer;
-import org.unicode.text.UCD.UCD;
+import org.unicode.text.UCD.old.UCD;
 import org.unicode.text.utility.IntStack;
 import org.unicode.text.utility.UTF16Plus;
 

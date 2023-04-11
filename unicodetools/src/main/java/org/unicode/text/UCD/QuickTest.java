@@ -48,6 +48,9 @@ import org.unicode.cldr.util.Tabber;
 import org.unicode.cldr.util.UnicodeSetPrettyPrinter;
 import org.unicode.props.BagFormatter;
 import org.unicode.props.UnicodeProperty.UnicodeMapProperty;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Names;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 
 public class QuickTest implements UCD_Types {

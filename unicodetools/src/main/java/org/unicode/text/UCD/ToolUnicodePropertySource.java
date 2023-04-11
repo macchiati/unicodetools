@@ -35,6 +35,9 @@ import org.unicode.props.UnicodeProperty.AliasAddAction;
 import org.unicode.props.UnicodeProperty.BaseProperty;
 import org.unicode.props.UnicodeProperty.SimpleProperty;
 import org.unicode.props.UnicodeProperty.UnicodeMapProperty;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Names;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;
 

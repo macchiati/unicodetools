@@ -13,7 +13,7 @@ import org.unicode.text.UCA.UCA.AppendToCe;
 import org.unicode.text.UCA.UCA.CollatorType;
 import org.unicode.text.UCD.Default;
 import org.unicode.text.UCD.Normalizer;
-import org.unicode.text.UCD.UCD;
+import org.unicode.text.UCD.old.UCD;
 import org.unicode.text.utility.Utility;
 
 public class WriteConformanceTest {

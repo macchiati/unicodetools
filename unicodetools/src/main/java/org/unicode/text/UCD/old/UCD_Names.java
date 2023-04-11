@@ -7,7 +7,7 @@
  *
  * <p>******************************************************************************
  */
-package org.unicode.text.UCD;
+package org.unicode.text.UCD.old;
 
 import com.ibm.icu.impl.Relation;
 import java.util.LinkedHashSet;

@@ -4,7 +4,7 @@ import com.ibm.icu.text.UnicodeSet;
 import java.util.ArrayList;
 import java.util.List;
 import org.unicode.text.UCD.ToolUnicodePropertySource;
-import org.unicode.text.UCD.UCD;
+import org.unicode.text.UCD.old.UCD;
 import org.unicode.text.utility.Utility;
 
 /**

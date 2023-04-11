@@ -4,6 +4,9 @@ import com.ibm.icu.text.UTF16;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map.Entry;
+
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.ChainException;
 
 class NormalizationDataStandard implements NormalizationData {

@@ -12,6 +12,9 @@ package org.unicode.text.UCD;
 import com.ibm.icu.text.UnicodeSet;
 import java.io.PrintWriter;
 import java.text.NumberFormat;
+
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.Utility;
 

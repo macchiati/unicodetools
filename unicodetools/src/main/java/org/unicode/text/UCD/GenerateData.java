@@ -16,6 +16,8 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.UTF32;
 import org.unicode.text.utility.UnicodeDataFile;

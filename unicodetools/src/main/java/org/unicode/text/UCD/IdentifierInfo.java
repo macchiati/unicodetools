@@ -40,6 +40,8 @@ import org.unicode.props.UcdPropertyValues.NFKC_Quick_Check_Values;
 import org.unicode.props.UnicodeProperty;
 import org.unicode.props.UnicodeProperty.Factory;
 import org.unicode.text.UCD.GenerateConfusables.FakeBreak;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;
 

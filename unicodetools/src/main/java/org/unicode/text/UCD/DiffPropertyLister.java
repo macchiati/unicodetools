@@ -12,6 +12,8 @@ package org.unicode.text.UCD;
 import com.ibm.icu.text.UnicodeSet;
 import java.io.PrintWriter;
 
+import org.unicode.text.UCD.old.UCD;
+
 class DiffPropertyLister extends PropertyLister {
     private UCD oldUCD;
     private final UnicodeSet set = new UnicodeSet();

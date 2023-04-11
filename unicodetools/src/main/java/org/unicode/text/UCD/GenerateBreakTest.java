@@ -32,6 +32,8 @@ import java.util.regex.Matcher;
 import org.unicode.props.IndexUnicodeProperties;
 import org.unicode.props.UcdProperty;
 import org.unicode.props.UnicodeProperty;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.UnicodeDataFile;
 import org.unicode.text.utility.Utility;

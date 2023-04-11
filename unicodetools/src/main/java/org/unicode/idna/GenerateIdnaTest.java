@@ -31,7 +31,7 @@ import org.unicode.props.UnicodePropertySymbolTable;
 import org.unicode.text.UCD.Default;
 import org.unicode.text.UCD.ToolUnicodePropertySource;
 import org.unicode.text.UCD.ToolUnicodeTransformFactory;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.UnicodeTransform;
 import org.unicode.text.utility.Utility;

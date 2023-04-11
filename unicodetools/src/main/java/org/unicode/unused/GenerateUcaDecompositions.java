@@ -14,8 +14,8 @@ import java.util.TreeMap;
 import org.unicode.cldr.draft.FileUtilities;
 import org.unicode.text.UCA.CEList;
 import org.unicode.text.UCA.UCA;
-import org.unicode.text.UCD.UCD;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;
 

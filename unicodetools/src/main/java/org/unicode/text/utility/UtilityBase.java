@@ -4,7 +4,7 @@ import com.ibm.icu.text.UTF16;
 import org.unicode.text.UCD.Default;
 import org.unicode.text.UCD.DerivedProperty;
 import org.unicode.text.UCD.UCDProperty;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD_Types;
 
 public class UtilityBase implements UCD_Types {
 

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.unicode.cldr.draft.FileUtilities;
 import org.unicode.props.UnicodeProperty;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;
 

@@ -24,6 +24,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Names;
+import org.unicode.text.UCD.old.UCD_Types;
+import org.unicode.text.UCD.old.UData;
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.UTF32;

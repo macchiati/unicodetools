@@ -9,6 +9,8 @@
  */
 package org.unicode.text.UCD;
 
+import org.unicode.text.UCD.old.ConvertUCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.CallArgs;
 import org.unicode.text.utility.DirectoryIterator;
 import org.unicode.text.utility.FastBinarySearch;

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.unicode.text.UCD.Default;
 import org.unicode.text.UCD.ToolUnicodePropertySource;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD_Types;
 
 public class CaseBit {
     public enum Casing {

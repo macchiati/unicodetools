@@ -12,6 +12,9 @@ package org.unicode.text.UCD;
 import com.ibm.icu.text.UnicodeSet;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Names;
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.Utility;
 

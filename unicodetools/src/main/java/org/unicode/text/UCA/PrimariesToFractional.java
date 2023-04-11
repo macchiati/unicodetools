@@ -7,7 +7,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import org.unicode.text.UCD.Default;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Utility;
 
 /**

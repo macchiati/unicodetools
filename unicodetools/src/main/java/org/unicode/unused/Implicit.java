@@ -4,7 +4,7 @@
 // and a different implicit algorithm for unassigned code points.
 package org.unicode.unused;
 
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Utility;
 
 /**

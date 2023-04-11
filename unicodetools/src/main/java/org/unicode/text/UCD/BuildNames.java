@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.unicode.text.UCD.old.UCD_Names;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.LengthFirstComparator;
 import org.unicode.text.utility.Utility;
 

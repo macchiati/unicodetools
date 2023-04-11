@@ -3,6 +3,9 @@ package org.unicode.text.UCD;
 import com.ibm.icu.text.UTF16;
 import java.util.BitSet;
 import java.util.HashMap;
+
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;

@@ -11,6 +11,9 @@ package org.unicode.text.UCD;
 
 import java.io.PrintWriter;
 
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
+
 final class DerivedPropertyLister extends PropertyLister {
     static final boolean BRIDGE = false;
 

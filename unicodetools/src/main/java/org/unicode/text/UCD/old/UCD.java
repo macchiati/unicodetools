@@ -7,7 +7,7 @@
  *
  * <p>******************************************************************************
  */
-package org.unicode.text.UCD;
+package org.unicode.text.UCD.old;
 
 import com.ibm.icu.dev.util.UnicodeMap;
 import com.ibm.icu.text.Transliterator;
@@ -30,6 +30,7 @@ import org.unicode.props.DefaultValues;
 import org.unicode.props.IndexUnicodeProperties;
 import org.unicode.props.UcdProperty;
 import org.unicode.props.UcdPropertyValues.Bidi_Class_Values;
+import org.unicode.text.UCD.IntMap;
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.UTF32;
@@ -1855,7 +1856,7 @@ public final class UCD implements UCD_Types {
         return SBase <= char1 && char1 < SLimit;
     }
 
-    static boolean isLeadingJamoComposition(int char1) {
+    public static boolean isLeadingJamoComposition(int char1) {
         return isLeadingJamo(char1) || isLV(char1);
     }
 
@@ -1871,11 +1872,11 @@ public final class UCD implements UCD_Types {
         return (TBase2 <= cp && cp < TLimit);
     }
 
-    static boolean isLeadingJamo(int cp) {
+    public static boolean isLeadingJamo(int cp) {
         return (LBase <= cp && cp < LLimit);
     }
 
-    static boolean isNonLeadJamo(int cp) {
+    public static boolean isNonLeadJamo(int cp) {
         return (VBase <= cp && cp < VLimit) || (TBase2 <= cp && cp < TLimit);
     }
 

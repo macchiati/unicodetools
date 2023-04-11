@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import org.unicode.cldr.draft.FileUtilities;
 import org.unicode.cldr.util.UnicodeSetPrettyPrinter;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;
 

@@ -19,6 +19,9 @@ import java.util.Map;
 import org.unicode.props.IndexUnicodeProperties;
 import org.unicode.props.UcdProperty;
 import org.unicode.props.UcdPropertyValues.Binary;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Names;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.Utility;
 

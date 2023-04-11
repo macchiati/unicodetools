@@ -7,7 +7,7 @@
  *
  * <p>******************************************************************************
  */
-package org.unicode.text.UCD;
+package org.unicode.text.UCD.old;
 
 public interface UCD_Types {
     static final int FIX_FOR_NEW_VERSION = 0;

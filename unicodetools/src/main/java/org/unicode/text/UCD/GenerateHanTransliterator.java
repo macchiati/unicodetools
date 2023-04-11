@@ -38,6 +38,7 @@ import java.util.TreeSet;
 import org.unicode.cldr.draft.FileUtilities;
 import org.unicode.props.IndexUnicodeProperties;
 import org.unicode.props.UcdProperty;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.Pair;
 import org.unicode.text.utility.Settings;

@@ -1,7 +1,7 @@
 package org.unicode.text.UCA;
 
 import org.unicode.text.UCD.Default;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Utility;
 
 /**

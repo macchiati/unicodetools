@@ -6,6 +6,8 @@ import com.ibm.icu.text.UnicodeSet;
 import com.ibm.icu.util.ULocale;
 import java.io.PrintWriter;
 import org.unicode.cldr.util.UnicodeSetPrettyPrinter;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Utility;
 
 public final class NFSkippable extends UCDProperty {

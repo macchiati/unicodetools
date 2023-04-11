@@ -1,5 +1,6 @@
 package org.unicode.text.UCD;
 
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.UnicodeTransform;
 import org.unicode.text.utility.UnicodeTransform.Type;
 

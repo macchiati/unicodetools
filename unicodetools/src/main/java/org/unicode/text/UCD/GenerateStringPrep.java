@@ -22,6 +22,8 @@ import org.unicode.cldr.util.TransliteratorUtilities;
 import org.unicode.cldr.util.props.UnicodeLabel;
 import org.unicode.props.BagFormatter;
 import org.unicode.text.UCD.TestData.RegexMatcher;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;
 

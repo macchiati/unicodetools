@@ -23,7 +23,7 @@ import org.unicode.text.UCA.PrimariesToFractional.PrimaryToFractional;
 import org.unicode.text.UCA.UCA.CollatorType;
 import org.unicode.text.UCD.Default;
 import org.unicode.text.UCD.ToolUnicodePropertySource;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.DualWriter;
 import org.unicode.text.utility.OldEquivalenceClass;

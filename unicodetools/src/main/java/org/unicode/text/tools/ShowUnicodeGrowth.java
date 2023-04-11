@@ -7,8 +7,8 @@ import org.unicode.cldr.util.Counter;
 import org.unicode.text.UCD.Default;
 import org.unicode.text.UCD.TestData;
 import org.unicode.text.UCD.ToolUnicodePropertySource;
-import org.unicode.text.UCD.UCD;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 
 public class ShowUnicodeGrowth {
     private static final int LATEST = UCD_Types.AGE_VERSIONS.length - 1;

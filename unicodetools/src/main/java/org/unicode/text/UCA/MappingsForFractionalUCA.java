@@ -11,7 +11,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import org.unicode.text.UCA.UCA.AppendToCe;
 import org.unicode.text.UCD.Default;
-import org.unicode.text.UCD.UCD;
+import org.unicode.text.UCD.old.UCD;
 import org.unicode.text.utility.Utility;
 
 /**

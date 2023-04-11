@@ -20,8 +20,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.unicode.text.UCD.Normalizer;
-import org.unicode.text.UCD.UCD;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Pair;
 import org.unicode.text.utility.Utility;
 

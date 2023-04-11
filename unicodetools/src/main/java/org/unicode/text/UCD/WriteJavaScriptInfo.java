@@ -11,6 +11,9 @@ package org.unicode.text.UCD;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Utility;
 
 public class WriteJavaScriptInfo implements UCD_Types {

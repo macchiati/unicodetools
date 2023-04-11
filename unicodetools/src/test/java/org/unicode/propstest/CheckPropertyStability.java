@@ -102,9 +102,9 @@ public class CheckPropertyStability {
                                     + removedDi.size()
                                     + "\tCHANGED:\t"
                                     + changedDi.size());
-                    show("new:", newDi);
+//                    show("new:", newDi);
                     show("REMOVED:", removedDi);
-                    show("CHANGED:", changedDi);
+//                    show("CHANGED:", changedDi);
                 }
             }
             lastDi = di;

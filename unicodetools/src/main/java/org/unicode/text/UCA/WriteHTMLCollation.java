@@ -12,7 +12,7 @@
 
 package org.unicode.text.UCA;
 
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD_Types;
 
 public class WriteHTMLCollation implements UCD_Types {
 

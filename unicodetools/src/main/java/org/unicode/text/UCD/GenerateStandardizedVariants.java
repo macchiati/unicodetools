@@ -17,6 +17,8 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import org.unicode.props.UnicodeProperty;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.UnicodeDataFile;
 import org.unicode.text.utility.Utility;

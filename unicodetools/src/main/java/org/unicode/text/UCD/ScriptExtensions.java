@@ -9,6 +9,9 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+
+import org.unicode.text.UCD.old.UCD_Names;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Utility;
 
 public class ScriptExtensions {

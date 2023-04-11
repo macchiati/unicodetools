@@ -1,8 +1,8 @@
 package org.unicode.text.UCA;
 
 import org.unicode.cldr.draft.ScriptMetadata;
-import org.unicode.text.UCD.UCD;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 
 /**
  * Helper class for reorder codes: Script code (0..FF) or reordering group code ({@link

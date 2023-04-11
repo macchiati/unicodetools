@@ -8,15 +8,16 @@
  *
  * <p>******************************************************************************
  */
-package org.unicode.text.UCD;
+package org.unicode.text.UCD.old;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+
 import org.unicode.text.utility.UTF32;
 import org.unicode.text.utility.Utility;
 
-class UData implements UCD_Types {
+public class UData implements UCD_Types {
     String name;
     String shortName; // cache
     String decompositionMapping;

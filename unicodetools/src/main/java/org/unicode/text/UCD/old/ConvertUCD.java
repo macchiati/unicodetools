@@ -7,7 +7,7 @@
  *
  * <p>******************************************************************************
  */
-package org.unicode.text.UCD;
+package org.unicode.text.UCD.old;
 
 import com.ibm.icu.text.UTF16;
 import java.io.BufferedOutputStream;
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import org.unicode.text.utility.ChainException;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;

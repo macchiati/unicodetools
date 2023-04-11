@@ -13,6 +13,8 @@ import java.io.PrintWriter;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import org.unicode.text.UCD.old.UCD;
+
 class MyFloatLister extends PropertyLister {
     private final double propMask;
     NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);

@@ -9,8 +9,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import org.unicode.text.UCD.Default;
-import org.unicode.text.UCD.UCD;
-import org.unicode.text.UCD.UCD_Types;
+import org.unicode.text.UCD.old.UCD;
+import org.unicode.text.UCD.old.UCD_Types;
 import org.unicode.text.utility.Utility;
 
 public final class TestCompatibilityCharacters {
