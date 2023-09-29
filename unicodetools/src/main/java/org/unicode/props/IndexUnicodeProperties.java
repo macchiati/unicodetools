@@ -3,7 +3,6 @@ package org.unicode.props;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.ibm.icu.dev.util.CollectionUtilities;
 import com.ibm.icu.dev.util.UnicodeMap;
 import com.ibm.icu.impl.Relation;
 import com.ibm.icu.lang.CharSequences;
@@ -45,6 +44,7 @@ import org.unicode.draft.UnicodeDataOutput;
 import org.unicode.draft.UnicodeDataOutput.ItemWriter;
 import org.unicode.props.PropertyNames.Named;
 import org.unicode.props.PropertyUtilities.Merge;
+import org.unicode.props.PropertyUtilities.SortingJoiner;
 import org.unicode.props.UcdPropertyValues.Age_Values;
 import org.unicode.props.UcdPropertyValues.Binary;
 import org.unicode.props.UcdPropertyValues.General_Category_Values;
@@ -164,19 +164,9 @@ public class IndexUnicodeProperties extends UnicodeProperty.Factory {
 
     static final Transform<String, String> fromNumericPinyin =
             Transliterator.getInstance("NumericPinyin-Latin;nfc");
-
-    static final Merge<String> ALPHABETIC_JOINER =
-            new Merge<String>() {
-                TreeSet<String> sorted = new TreeSet<String>();
-
-                @Override
-                public String merge(String first, String second) {
-                    sorted.clear();
-                    sorted.addAll(Arrays.asList(first.split(FIELD_SEPARATOR)));
-                    sorted.addAll(Arrays.asList(second.split(FIELD_SEPARATOR)));
-                    return CollectionUtilities.join(sorted, FIELD_SEPARATOR);
-                }
-            };
+    
+    static final Merge<String> ALPHABETIC_JOINER = new SortingJoiner(FIELD_SEPARATOR);
+    static final Merge<String> MULTIVALUE_JOINER = new SortingJoiner(SET_SEPARATOR);
 
     // should be on UnicodeMap
     public static <T, V extends Collection<T>, U extends Map<T, UnicodeSet>> U invertSet(
@@ -680,6 +670,7 @@ public class IndexUnicodeProperties extends UnicodeProperty.Factory {
             }
         }
 
+        @Override
         protected UnicodeMap<String> _getUnicodeMap() {
             return load(prop);
         }

@@ -1,5 +1,7 @@
 package org.unicode.propstest;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.ibm.icu.dev.util.UnicodeMap;
 import com.ibm.icu.dev.util.UnicodeMap.EntryRange;
 import com.ibm.icu.impl.Relation;
@@ -15,6 +17,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,6 +26,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.unicode.cldr.draft.FileUtilities;
+import org.unicode.cldr.util.Counter;
 import org.unicode.cldr.util.Tabber;
 import org.unicode.cldr.util.Timer;
 import org.unicode.cldr.util.With;
@@ -34,10 +38,16 @@ import org.unicode.props.PropertyNames;
 import org.unicode.props.PropertyNames.NameMatcher;
 import org.unicode.props.PropertyParsingInfo;
 import org.unicode.props.PropertyStatus;
+import org.unicode.props.PropertyStatus.PropertyCodomain;
+import org.unicode.props.PropertyStatus.PropertyOrigin;
+import org.unicode.props.PropertyStatus.PropertyScope;
+import org.unicode.props.PropertyStatus.RegexInfo;
+import org.unicode.props.PropertyType;
 import org.unicode.props.UcdProperty;
 import org.unicode.props.UcdPropertyValues;
 import org.unicode.props.UnicodeProperty;
 import org.unicode.props.UnicodeSetUtilities;
+import org.unicode.props.ValueCardinality;
 import org.unicode.text.utility.Settings;
 import org.unicode.text.utility.Utility;
 
@@ -66,7 +76,7 @@ public class CheckProperties {
         DEFAULTS,
         JSON,
         NAMES,
-        ONLY_NEW
+        ONLY_NEW, COUNT
     }
 
     enum Extent {
@@ -123,7 +133,7 @@ public class CheckProperties {
             throw new IllegalArgumentException("Illegal Argument: " + arg);
         }
         if (actions.size() == 0) {
-            actions = EnumSet.of(Action.COMPARE, Action.ONLY_NEW);
+            actions = EnumSet.of(Action.COUNT);
         }
         if (extent == null) {
             extent = Extent.ALL;
@@ -137,6 +147,7 @@ public class CheckProperties {
         //        showValue(last, UcdProperty.General_Category, '\u5427');
 
         latest = IndexUnicodeProperties.make(version);
+        System.out.println("Version: " + latest.getUcdVersion().getVersionString(1, 2));
         final IndexUnicodeProperties last =
                 IndexUnicodeProperties.make(Utility.getPreviousUcdVersion(version));
         // final UnicodeMap<String> gcLast = showValue(last, UcdProperty.General_Category,
@@ -169,9 +180,9 @@ public class CheckProperties {
         // See the comments in RadicalStroke.getCJKRadicals().
         final List<UcdProperty> values =
                 extent == null
-                        ? new ArrayList(properties)
+                ? new ArrayList(properties)
                         : extent == Extent.ALL
-                                ? Arrays.asList(UcdProperty.values())
+                        ? Arrays.asList(UcdProperty.values())
                                 : Arrays.asList(
                                         // UcdProperty.General_Category,
                                         UcdProperty.CJK_Radical,
@@ -188,154 +199,160 @@ public class CheckProperties {
                                         //                    UcdProperty.Named_Sequences,
                                         //                    UcdProperty.Named_Sequences_Prov
                                         );
+        boolean skipFinal = false;
         for (final Action action : actions) {
             switch (action) {
-                case NAMES:
-                    for (final Entry<String, PropertyParsingInfo> entry :
-                            PropertyParsingInfo.getFile2PropertyInfoSet().keyValueSet()) {
-                        out.println(entry.getKey() + " ; " + entry.getValue());
+            case NAMES:
+                for (final Entry<String, PropertyParsingInfo> entry :
+                    PropertyParsingInfo.getFile2PropertyInfoSet().keyValueSet()) {
+                    out.println(entry.getKey() + " ; " + entry.getValue());
+                }
+                break;
+            case SHOW:
+                for (final UcdProperty prop : values) {
+                    show(latest, prop, actions.contains(Action.SPACES), false);
+                }
+                break;
+            case SPACES:
+                break;
+            case COUNT:
+                showCounts(values);
+                skipFinal = true;
+                break;
+            case DETAILS:
+                for (final UcdProperty prop : values) {
+                    show(latest, prop, actions.contains(Action.SPACES), true);
+                }
+                break;
+            case COMPARE:
+            {
+                final Set<String> summary = new LinkedHashSet();
+                for (final UcdProperty prop : values) {
+                    if (PropertyStatus.getPropertyStatus(prop)
+                            == PropertyStatus
+                            .Deprecated) { // DEPRECATED_PROPERTY.contains(prop)
+                        continue;
                     }
-                    break;
-                case SHOW:
-                    for (final UcdProperty prop : values) {
-                        show(latest, prop, actions.contains(Action.SPACES), false);
+                    compare(prop, last, latest, retain, summary);
+                }
+                showSummary(summary);
+            }
+            break;
+            case ICU:
+            {
+                out.println("Property\tICU-Value\tDirect-Value\tChars-Affected");
+                final Set<String> summary = new LinkedHashSet();
+                for (final UcdProperty prop : values) {
+                    compareICU(prop, LATEST_ICU ? latest : last, summary);
+                }
+                showSummary(summary);
+            }
+            break;
+            case DEFAULTS:
+                for (final UcdProperty prop : values) {
+                    showDefaults(prop);
+                }
+                break;
+            case EMPTY:
+                for (final UcdProperty prop : values) {
+                    checkEmpty(latest, prop);
+                }
+                break;
+            case JSON:
+            {
+                for (final UcdProperty prop : values) {
+                    out.println(prop);
+                    writeJson(latest, prop);
+                }
+                break;
+            }
+            case INFO:
+                final Tabber tabber =
+                new Tabber.MonoTabber()
+                .add(30, Tabber.LEFT)
+                .add(30, Tabber.LEFT)
+                .add(30, Tabber.LEFT);
+                final Relation<String, String> sorted =
+                        Relation.of(new TreeMap<String, Set<String>>(), LinkedHashSet.class);
+                final Set<UcdProperty> missingRegex = EnumSet.noneOf(UcdProperty.class);
+                for (final UcdProperty prop : UcdProperty.values()) {
+                    final PropertyParsingInfo propInfo =
+                            PropertyParsingInfo.getPropertyInfo(prop);
+                    if (propInfo.originalRegex == null) {
+                        continue;
                     }
-                    break;
-                case SPACES:
-                    break;
-                case DETAILS:
-                    for (final UcdProperty prop : values) {
-                        show(latest, prop, actions.contains(Action.SPACES), true);
-                    }
-                    break;
-                case COMPARE:
-                    {
-                        final Set<String> summary = new LinkedHashSet();
-                        for (final UcdProperty prop : values) {
-                            if (PropertyStatus.getPropertyStatus(prop)
-                                    == PropertyStatus
-                                            .Deprecated) { // DEPRECATED_PROPERTY.contains(prop)
-                                continue;
-                            }
-                            compare(prop, last, latest, retain, summary);
-                        }
-                        showSummary(summary);
-                    }
-                    break;
-                case ICU:
-                    {
-                        out.println("Property\tICU-Value\tDirect-Value\tChars-Affected");
-                        final Set<String> summary = new LinkedHashSet();
-                        for (final UcdProperty prop : values) {
-                            compareICU(prop, LATEST_ICU ? latest : last, summary);
-                        }
-                        showSummary(summary);
-                    }
-                    break;
-                case DEFAULTS:
-                    for (final UcdProperty prop : values) {
-                        showDefaults(prop);
-                    }
-                    break;
-                case EMPTY:
-                    for (final UcdProperty prop : values) {
-                        checkEmpty(latest, prop);
-                    }
-                    break;
-                case JSON:
-                    {
-                        for (final UcdProperty prop : values) {
-                            out.println(prop);
-                            writeJson(latest, prop);
-                        }
-                        break;
-                    }
-                case INFO:
-                    final Tabber tabber =
-                            new Tabber.MonoTabber()
-                                    .add(30, Tabber.LEFT)
-                                    .add(30, Tabber.LEFT)
-                                    .add(30, Tabber.LEFT);
-                    final Relation<String, String> sorted =
-                            Relation.of(new TreeMap<String, Set<String>>(), LinkedHashSet.class);
-                    final Set<UcdProperty> missingRegex = EnumSet.noneOf(UcdProperty.class);
-                    for (final UcdProperty prop : UcdProperty.values()) {
-                        final PropertyParsingInfo propInfo =
-                                PropertyParsingInfo.getPropertyInfo(prop);
-                        if (propInfo.originalRegex == null) {
-                            continue;
-                        }
-                        final String line =
-                                tabber.process(
-                                        propInfo.property
-                                                + " ;\t"
-                                                + propInfo.getMultivalued()
-                                                + " ;\t"
-                                                + propInfo.originalRegex);
-                        sorted.put(propInfo.originalRegex, line);
-                    }
-                    for (final Entry<String, String> regexLine : sorted.keyValueSet()) {
-                        out.println(regexLine.getValue());
-                    }
+                    final String line =
+                            tabber.process(
+                                    propInfo.property
+                                    + " ;\t"
+                                    + propInfo.getMultivalued()
+                                    + " ;\t"
+                                    + propInfo.originalRegex);
+                    sorted.put(propInfo.originalRegex, line);
+                }
+                for (final Entry<String, String> regexLine : sorted.keyValueSet()) {
+                    out.println(regexLine.getValue());
+                }
 
-                    for (final UcdProperty prop : UcdProperty.values()) {
-                        final PropertyParsingInfo propInfo =
-                                PropertyParsingInfo.getPropertyInfo(prop);
-                        out.println(propInfo);
-                        if (propInfo.getRegex() == null) {
-                            switch (prop.getType()) {
-                                case Binary:
-                                case Catalog:
-                                case Enumerated:
-                                    break;
-                                default:
-                                    missingRegex.add(prop);
-                            }
+                for (final UcdProperty prop : UcdProperty.values()) {
+                    final PropertyParsingInfo propInfo =
+                            PropertyParsingInfo.getPropertyInfo(prop);
+                    out.println(propInfo);
+                    if (propInfo.getRegex() == null) {
+                        switch (prop.getType()) {
+                        case Binary:
+                        case Catalog:
+                        case Enumerated:
+                            break;
+                        default:
+                            missingRegex.add(prop);
                         }
                     }
-                    out.println("\nMissing Regex");
-                    for (final UcdProperty prop : missingRegex) {
-                        final PropertyParsingInfo propInfo =
-                                PropertyParsingInfo.getPropertyInfo(prop);
-                        out.println(
-                                prop
-                                        + " ;\t"
-                                        + propInfo.getMultivalued()
-                                        + " ;\t"
-                                        + propInfo.getRegex());
-                    }
-                    break;
+                }
+                out.println("\nMissing Regex");
+                for (final UcdProperty prop : missingRegex) {
+                    final PropertyParsingInfo propInfo =
+                            PropertyParsingInfo.getPropertyInfo(prop);
+                    out.println(
+                            prop
+                            + " ;\t"
+                            + propInfo.getMultivalued()
+                            + " ;\t"
+                            + propInfo.getRegex());
+                }
+                break;
             }
         }
+        if (!skipFinal) {
+            showInfo("No Differences", SKIPPING, out);
+            showInfo("Property Enum Canonical Form wrong", PROPNAMEDIFFERENCES, outLog);
+            showInfo("Not In ICU", NOT_IN_ICU, outLog);
+            showInfo("Cache File Sizes", latest.getCacheFileSize().entrySet(), outLog);
 
-        showInfo("No Differences", SKIPPING, out);
-        showInfo("Property Enum Canonical Form wrong", PROPNAMEDIFFERENCES, outLog);
-        showInfo("Not In ICU", NOT_IN_ICU, outLog);
-        showInfo("Cache File Sizes", latest.getCacheFileSize().entrySet(), outLog);
-
-        final Set<Entry<UcdProperty, Set<String>>> dataLoadingErrors =
-                IndexUnicodeProperties.getDataLoadingErrors().keyValuesSet();
-        if (dataLoadingErrors.size() != 0) {
-            outLog.println("Data loading errors: " + dataLoadingErrors.size());
-            for (final Entry<UcdProperty, Set<String>> s : dataLoadingErrors) {
-                outLog.println("\t" + s.getKey());
-                int max = 100;
-                for (final String value : s.getValue()) {
-                    outLog.println("\t\t" + value);
-                    if (--max < 0) {
-                        outLog.println("…");
-                        break;
+            final Set<Entry<UcdProperty, Set<String>>> dataLoadingErrors =
+                    IndexUnicodeProperties.getDataLoadingErrors().keyValuesSet();
+            if (dataLoadingErrors.size() != 0) {
+                outLog.println("Data loading errors: " + dataLoadingErrors.size());
+                for (final Entry<UcdProperty, Set<String>> s : dataLoadingErrors) {
+                    outLog.println("\t" + s.getKey());
+                    int max = 100;
+                    for (final String value : s.getValue()) {
+                        outLog.println("\t\t" + value);
+                        if (--max < 0) {
+                            outLog.println("…");
+                            break;
+                        }
                     }
                 }
             }
+
+            final Set<String> latestFiles = latest.getFileNames();
+            final File dir = new File(Settings.UnicodeTools.UCD_DIR);
+            final List<File> result = new ArrayList<File>();
+            checkFiles(latestFiles, dir, result);
+            showInfo("Files Not Read", result, outLog);
+
         }
-
-        final Set<String> latestFiles = latest.getFileNames();
-        final File dir = new File(Settings.UnicodeTools.UCD_DIR);
-        final List<File> result = new ArrayList<File>();
-        checkFiles(latestFiles, dir, result);
-        showInfo("Files Not Read", result, outLog);
-
         total.stop();
         System.out.println(total.toString());
         out.println(total.toString());
@@ -347,6 +364,91 @@ public class CheckProperties {
             outLog.flush();
             outLog.close();
         }
+    }
+
+    public static void showCounts(final List<UcdProperty> values) {
+        System.out.println(
+                "UTS18+ scope"
+                        + "\t" +     "prop" //
+                        + "\t" + "codomain"
+                        + "\t" + "domain"
+                        + "\t" + "spec"
+                        + "\t" + "cardinality"
+                        + "\t" + "status"
+                        + "\t" + "№ values" //
+                        + "\t" + "file bytes"
+                );
+
+        final Set<PropertyStatus> skipPropertyStatus = Set.of(PropertyStatus.Deprecated, PropertyStatus.Obsolete, PropertyStatus.Contributory);
+        Set<String> errors = new LinkedHashSet<>();
+
+        for (final UcdProperty prop : values) {
+            final ValueCardinality cardinality = prop.getCardinality();
+            String propName = prop.toString();
+            PropertyType type = prop.getType();
+            final EnumSet<PropertyStatus> propertyStatusSet = PropertyStatus.getPropertyStatusSet(prop);
+            if (!Collections.disjoint(propertyStatusSet, skipPropertyStatus)) {
+                continue;
+            }
+
+            UnicodeMap<String> propValues = latest.load(prop);
+
+            PropertyOrigin origin = PropertyStatus.getOrigin(propName);
+            final PropertyScope scope = PropertyStatus.getScope(propName);
+            Set<PropertyScope> scopes = new TreeSet<>();
+            if (PropertyScope.Unknown != scope) {
+                scopes.add(scope);
+            }
+            final boolean isUnihan = propName.startsWith("k") && propName.charAt(1) < 'a';
+            Counter<Integer> multivalued = new Counter<>();
+            if (isUnihan) {
+                if (origin == PropertyOrigin.Unknown) {
+                    origin = PropertyOrigin.UAX38;
+                    scopes.add(PropertyScope.Unihan);
+                }
+            }
+            if (cardinality != ValueCardinality.Singleton || isUnihan) {
+                String separator = "|";
+                final Splitter splitter = Splitter.on(separator).trimResults();
+                if (prop == UcdProperty.Name_Alias) {
+                    int debug = 0;
+                }
+                for (String key : propValues.keySet()) {
+                    if (key.contains("\u8303")) {
+                        int debug = 0;
+                    }
+                    String value = propValues.get(key);
+                    if (value.contains(separator)) {
+                        List<String> parts = splitter.splitToList(value);
+                        multivalued.add(parts.size(), 1);
+                    }
+                }
+            }
+
+            RegexInfo regexInfo = PropertyStatus.getRegexInfo(prop);
+            PropertyCodomain codomain = PropertyCodomain.character;
+            if (regexInfo != null) {
+                PropertyScope regexScope = regexInfo.scope;
+                if (regexScope != scope) {
+                    scopes.add(regexScope);
+                    errors.add(prop + " Scope in UTS18 " + regexScope + " ≠ " + scope);
+                }
+                codomain = regexInfo.codomain;
+            }
+            System.out.println(
+                    Joiner.on(", ").join(scopes)
+                    + "\t" + prop //
+                    + "\t" + codomain
+                    + "\t" + type
+                    + "\t" + origin
+                    + "\t" + cardinality
+                    + "\t" + Joiner.on(", ").join(multivalued.getMap().entrySet())
+                    + "\t" + Joiner.on(", ").join(propertyStatusSet)
+                    + "\t" + propValues.values().size() //
+                    + "\t" + latest.getCacheFileSize().get(prop)
+                    );
+        }
+        System.out.println("#" + Joiner.on("\n# ").join(errors));
     }
 
     private static void showSummary(Set<String> summary) {
@@ -375,28 +477,28 @@ public class CheckProperties {
         for (int i = 0; i < source.length(); ++i) { // safe, only care about ASCII
             final char ch = source.charAt(i);
             switch (ch) {
-                case '\b':
-                    result.append('\b');
-                    break;
-                case '\f':
-                    result.append('\f');
-                    break;
-                case '\n':
-                    result.append('\n');
-                    break;
-                case '\r':
-                    result.append('\r');
-                    break;
-                case '\t':
-                    result.append('\t');
-                    break;
-                case '"':
-                case '\\':
-                    result.append('\\').append(ch);
-                    break;
-                default:
-                    result.append(ch);
-                    break;
+            case '\b':
+                result.append('\b');
+                break;
+            case '\f':
+                result.append('\f');
+                break;
+            case '\n':
+                result.append('\n');
+                break;
+            case '\r':
+                result.append('\r');
+                break;
+            case '\t':
+                result.append('\t');
+                break;
+            case '"':
+            case '\\':
+                result.append('\\').append(ch);
+                break;
+            default:
+                result.append(ch);
+                break;
             }
         }
         return result.append('"').toString();
@@ -523,16 +625,16 @@ public class CheckProperties {
         latest.load(prop); // need to do this to get the @missing!
         out.println(
                 prop
-                        + ";\t"
-                        + prop.getType()
-                        + ";\t"
-                        + PropertyStatus.getPropertyStatus(prop)
-                        + ";\t"
-                        + info.getMultivalued()
-                        + ";\t"
-                        + info.getDefaultValue()
-                        + ";\t"
-                        + (info.originalRegex == null ? "<enum>" : info.originalRegex));
+                + ";\t"
+                + prop.getType()
+                + ";\t"
+                + PropertyStatus.getPropertyStatus(prop)
+                + ";\t"
+                + info.getMultivalued()
+                + ";\t"
+                + info.getDefaultValue()
+                + ";\t"
+                + (info.originalRegex == null ? "<enum>" : info.originalRegex));
     }
 
     public static void checkEmpty(IndexUnicodeProperties latest, UcdProperty prop) {
@@ -608,12 +710,12 @@ public class CheckProperties {
         final UnicodeMap<String> gcLast = last.load(ucdProperty);
         out.println(
                 last.getUcdVersion()
-                        + ", "
-                        + ucdProperty
-                        + "("
-                        + Utility.hex(codePoint)
-                        + ")="
-                        + gcLast.get(codePoint));
+                + ", "
+                + ucdProperty
+                + "("
+                + Utility.hex(codePoint)
+                + ")="
+                + gcLast.get(codePoint));
         return gcLast;
     }
 
@@ -727,24 +829,24 @@ public class CheckProperties {
                 if (false && chars.size() == 1) {
                     currentOut.println(
                             prop
-                                    + "\t"
-                                    + value
-                                    // + "\t" + FIX_INVISIBLES.transform(chars.toPattern(false))
-                                    + "\tsubtotal:\t"
-                                    + chars.size()
-                                    + "\t"
-                                    + getHexAndName(chars.iterator().next()));
+                            + "\t"
+                            + value
+                            // + "\t" + FIX_INVISIBLES.transform(chars.toPattern(false))
+                            + "\tsubtotal:\t"
+                            + chars.size()
+                            + "\t"
+                            + getHexAndName(chars.iterator().next()));
                     continue;
                 }
                 currentOut.print(
                         prop
-                                + "\t"
-                                + value
-                                // + "\t" + FIX_INVISIBLES.transform(chars.toPattern(false))
-                                + "\t"
-                                + chars.size()
-                                + "\t"
-                                + chars.toPattern(false) // abbreviate(chars, 50, false)
+                        + "\t"
+                        + value
+                        // + "\t" + FIX_INVISIBLES.transform(chars.toPattern(false))
+                        + "\t"
+                        + chars.size()
+                        + "\t"
+                        + chars.toPattern(false) // abbreviate(chars, 50, false)
                         );
                 int nameLimit = NAME_LIMIT;
                 String indent = "\t#\t";
@@ -761,13 +863,13 @@ public class CheckProperties {
                 // indent = "\t\t\t\t\t\t#\t";
                 currentOut.println(
                         prop
-                                + "\t"
-                                + "OTHERS\t\t"
-                                // + "\t" + FIX_INVISIBLES.transform(chars.toPattern(false))
-                                + "\t"
-                                + others.size()
-                                + "\t"
-                                + abbreviate(others, 200, false) // others.toPattern(false) //
+                        + "\t"
+                        + "OTHERS\t\t"
+                        // + "\t" + FIX_INVISIBLES.transform(chars.toPattern(false))
+                        + "\t"
+                        + others.size()
+                        + "\t"
+                        + abbreviate(others, 200, false) // others.toPattern(false) //
                         );
             }
         }
@@ -815,28 +917,28 @@ public class CheckProperties {
             return;
         }
         switch (prop.getType()) {
-            case Numeric:
-                if (approximatelyEqual(
-                        numericValue(lastValue), numericValue(latestValue), 0.0000001d)) {
-                    return;
-                }
-                break;
-            case Catalog:
-            case Enumerated:
-                if (prop == UcdProperty.Age) {
-                    final int x = 0; // debug point
-                }
-                if (PropertyNames.NameMatcher.matches(lastValue, latestValue)) {
-                    PROPNAMEDIFFERENCES.add(
-                            prop
-                                    + "\t«"
-                                    + abbreviate(lastValue, 50, true)
-                                    + "»\t≠\t«"
-                                    + abbreviate(latestValue, 50, true)
-                                    + "»");
-                    return;
-                }
-                break;
+        case Numeric:
+            if (approximatelyEqual(
+                    numericValue(lastValue), numericValue(latestValue), 0.0000001d)) {
+                return;
+            }
+            break;
+        case Catalog:
+        case Enumerated:
+            if (prop == UcdProperty.Age) {
+                final int x = 0; // debug point
+            }
+            if (PropertyNames.NameMatcher.matches(lastValue, latestValue)) {
+                PROPNAMEDIFFERENCES.add(
+                        prop
+                        + "\t«"
+                        + abbreviate(lastValue, 50, true)
+                        + "»\t≠\t«"
+                        + abbreviate(latestValue, 50, true)
+                        + "»");
+                return;
+            }
+            break;
         }
         changes.put(
                 codepoint,
@@ -856,7 +958,15 @@ public class CheckProperties {
             return Double.parseDouble(a.substring(0, slashPos))
                     / Double.parseDouble(a.substring(slashPos + 1));
         }
-        return Double.parseDouble(a);
+        try {
+            return Double.parseDouble(a);
+        } catch (NumberFormatException e) {
+            int spacePos = a.indexOf(' ');
+            if (spacePos >= 0) {
+                return Double.parseDouble(a.substring(0,spacePos));
+            }
+            throw e;
+        }
     }
 
     private static boolean approximatelyEqual(Double a, Double b, Double epsilon) {
@@ -894,20 +1004,20 @@ public class CheckProperties {
             final UnicodeMap<String> di = latest.load(UcdProperty.Default_Ignorable_Code_Point);
             INVISIBLES =
                     new UnicodeSet(
-                                    gc.getSet(
-                                            UcdPropertyValues.General_Category_Values.Control
-                                                    .toString()))
-                            // .addAll(gc.getSet(UcdPropertyValues.General_Category_Values.Format.toString()))
-                            .addAll(
-                                    gc.getSet(
-                                            UcdPropertyValues.General_Category_Values.Surrogate
-                                                    .toString()))
-                            .addAll(
-                                    gc.getSet(
-                                            UcdPropertyValues.General_Category_Values.Private_Use
-                                                    .toString()))
-                            .addAll(di.getSet(UcdPropertyValues.Binary.Yes.toString()))
-                            .freeze();
+                            gc.getSet(
+                                    UcdPropertyValues.General_Category_Values.Control
+                                    .toString()))
+                    // .addAll(gc.getSet(UcdPropertyValues.General_Category_Values.Format.toString()))
+                    .addAll(
+                            gc.getSet(
+                                    UcdPropertyValues.General_Category_Values.Surrogate
+                                    .toString()))
+                    .addAll(
+                            gc.getSet(
+                                    UcdPropertyValues.General_Category_Values.Private_Use
+                                    .toString()))
+                    .addAll(di.getSet(UcdPropertyValues.Binary.Yes.toString()))
+                    .freeze();
         }
         return INVISIBLES;
     }
@@ -921,7 +1031,7 @@ public class CheckProperties {
                                     + getInvisibles()
                                     + ") > ❮&hex/plain($1)❯ ;"
                                     + "([^\\u0000-\\u00FF\\u2026]) > $1❮&hex/plain($1)❯ ;",
-                            Transliterator.FORWARD);
+                                    Transliterator.FORWARD);
         }
         return FIX_NON_ASCII8.transform(charString);
     }
@@ -972,14 +1082,14 @@ public class CheckProperties {
         final String sample = abbreviate(values.toString(), 150, false);
         out.println(
                 prop
-                        + "\ttime:\t"
-                        + timer.getDuration()
-                        + "\tcodepoints:\t"
-                        + map.size()
-                        + "\tvalues:\t"
-                        + values.size()
-                        + "\tsample:\t"
-                        + sample);
+                + "\ttime:\t"
+                + timer.getDuration()
+                + "\tcodepoints:\t"
+                + map.size()
+                + "\tvalues:\t"
+                + values.size()
+                + "\tsample:\t"
+                + sample);
         if (details) {
             int maxCodepointLength = 0;
             final List<R2<String, String>> list = new ArrayList<R2<String, String>>();
@@ -1014,11 +1124,11 @@ public class CheckProperties {
                 final String codepoints = entry.get0();
                 out.println(
                         codepoints
-                                + "; "
-                                + Utility.repeat(" ", maxCodepointLength - codepoints.length())
-                                + shortName
-                                + "; "
-                                + entry.get1());
+                        + "; "
+                        + Utility.repeat(" ", maxCodepointLength - codepoints.length())
+                        + shortName
+                        + "; "
+                        + entry.get1());
             }
         }
         //        for (String value : map.getAvailableValues()) {

@@ -1,6 +1,9 @@
 package org.unicode.props;
 
+import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.dev.util.CollectionUtilities;
+import com.ibm.icu.lang.UCharacter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -22,7 +25,7 @@ public enum PropertyStatus {
     Immutable,
     Unknown;
 
-    enum PropertyOrigin {
+    public enum PropertyOrigin {
         UCD,
         Nameslist,
         Unicode,
@@ -33,6 +36,7 @@ public enum PropertyStatus {
         UTS51,
         ICU,
         Extra,
+        UAX38,
         Unknown
     }
 
@@ -51,7 +55,7 @@ public enum PropertyStatus {
         Security(PropertyOrigin.UTS39),
         Shaping_and_Rendering,
         UCA(PropertyOrigin.UTS10),
-        Unknown;
+        Unknown, Unihan;
 
         final PropertyOrigin origin;
 
@@ -426,12 +430,12 @@ public enum PropertyStatus {
         process("toNFM", "ICU", "Normalization", "String");
         process("Segment_Starter", "ICU", "Shaping_and_Rendering", "Binary");
         process("Subhead", "Nameslist", "General", "String");
-        process("Bidi_Control", "UCD", "Bidirectional", "Binary");
-        process("Bidi_Mirrored", "UCD", "Bidirectional", "Binary");
-        process("Bidi_Class", "UCD", "Bidirectional", "Enumerated");
-        process("Bidi_Mirroring_Glyph", "UCD", "Bidirectional", "String");
-        process("Bidi_Paired_Bracket", "UCD", "Bidirectional", "String");
-        process("Bidi_Paired_Bracket_Type", "UCD", "Bidirectional", "Enumerated");
+        process("Bidi_Control", "UAX09", "Bidirectional", "Binary");
+        process("Bidi_Mirrored", "UAX09", "Bidirectional", "Binary");
+        process("Bidi_Class", "UAX09", "Bidirectional", "Enumerated");
+        process("Bidi_Mirroring_Glyph", "UAX09", "Bidirectional", "String");
+        process("Bidi_Paired_Bracket", "UAX09", "Bidirectional", "String");
+        process("Bidi_Paired_Bracket_Type", "UAX09", "Bidirectional", "Enumerated");
         process("Case_Ignorable", "UCD", "Case", "Binary");
         process("Cased", "UCD", "Case", "Binary");
         process("Changes_When_Casefolded", "UCD", "Case", "Binary");
@@ -451,8 +455,11 @@ public enum PropertyStatus {
         process("Titlecase_Mapping", "UCD", "Case", "String");
         process("Uppercase_Mapping", "UCD", "Case", "String");
         process("Ideographic", "UCD", "CJK", "Binary");
+        
+        process("IDS_Unary_Operator", "UCD", "CJK", "Binary");
         process("IDS_Binary_Operator", "UCD", "CJK", "Binary");
         process("IDS_Trinary_Operator", "UCD", "CJK", "Binary");
+        
         process("Radical", "UCD", "CJK", "Binary");
         process("Unified_Ideograph", "UCD", "CJK", "Binary");
         process("CJK_Radical", "UCD", "CJK", "String");
@@ -468,22 +475,26 @@ public enum PropertyStatus {
         process("White_Space", "UCD", "General", "Binary");
         process("Age", "UCD", "General", "Catalog");
         process("Block", "UCD", "General", "Catalog");
-        process("Script", "UCD", "General", "Catalog");
+        process("Script", "UAX24", "General", "Catalog");
         process("General_Category", "UCD", "General", "Enumerated");
         process("Hangul_Syllable_Type", "UCD", "General", "Enumerated");
         process("Name", "UCD", "General", "String");
-        process("Script_Extensions", "UCD", "General", "String");
+        process("Script_Extensions", "UAX24", "General", "String");
         process("Name_Alias", "UCD", "General", "Enumerated");
         process("Named_Sequences_Prov", "UCD", "General", "Enumerated");
         process("Named_Sequences", "UCD", "General", "Enumerated");
-        process("ID_Continue", "UCD", "Identifiers", "Binary");
-        process("ID_Start", "UCD", "Identifiers", "Binary");
-        process("Pattern_Syntax", "UCD", "Identifiers", "Binary");
-        process("Pattern_White_Space", "UCD", "Identifiers", "Binary");
-        process("XID_Continue", "UCD", "Identifiers", "Binary");
-        process("XID_Start", "UCD", "Identifiers", "Binary");
-        process("Idn_Mapping", "UCD", "IDNA", "Enumerated");
-        process("Idn_Status", "UCD", "IDNA", "Enumerated");
+        
+        process("ID_Compat_Math_Start", "UAX31", "Identifiers", "Binary");
+        process("ID_Compat_Math_Continue", "UAX31", "Identifiers", "Binary");
+
+        process("ID_Continue", "UAX31", "Identifiers", "Binary");
+        process("ID_Start", "UAX31", "Identifiers", "Binary");
+        process("Pattern_Syntax", "UAX31", "Identifiers", "Binary");
+        process("Pattern_White_Space", "UAX31", "Identifiers", "Binary");
+        process("XID_Continue", "UAX31", "Identifiers", "Binary");
+        process("XID_Start", "UAX31", "Identifiers", "Binary");
+        process("Idn_Mapping", "UTS46", "IDNA", "Enumerated");
+        process("Idn_Status", "UTS46", "IDNA", "Enumerated");
         process("Dash", "UCD", "Miscellaneous", "Binary");
         process("Diacritic", "UCD", "Miscellaneous", "Binary");
         process("Extender", "UCD", "Miscellaneous", "Binary");
@@ -498,9 +509,12 @@ public enum PropertyStatus {
         process("ISO_Comment", "UCD", "Miscellaneous", "Miscellaneous");
         process("Unicode_1_Name", "UCD", "Miscellaneous", "Miscellaneous");
         process("Indic_Positional_Category", "UCD", "Miscellaneous", "Enumerated");
+        process("Indic_Conjunct_Break", "UCD", "Miscellaneous", "Enumerated");
         process("Indic_Syllabic_Category", "UCD", "Miscellaneous", "Enumerated");
+        process("Decomposition_Mapping", "UCD", "Normalization", "Binary");
         process("Changes_When_NFKC_Casefolded", "UCD", "Normalization", "Binary");
         process("Full_Composition_Exclusion", "UCD", "Normalization", "Binary");
+        process("Composition_Exclusion", "UCD", "Normalization", "Binary");
         process("Canonical_Combining_Class", "UCD", "Normalization", "Enumerated");
         process("Decomposition_Type", "UCD", "Normalization", "Enumerated");
         process("NFC_Quick_Check", "UCD", "Normalization", "Enumerated");
@@ -508,6 +522,7 @@ public enum PropertyStatus {
         process("NFKC_Quick_Check", "UCD", "Normalization", "Enumerated");
         process("NFKD_Quick_Check", "UCD", "Normalization", "Enumerated");
         process("NFKC_Casefold", "UCD", "Normalization", "String");
+        process("NFKC_Simple_Casefold", "UCD", "Normalization", "String");
         process("ASCII_Hex_Digit", "UCD", "Numeric", "Binary");
         process("Hex_Digit", "UCD", "Numeric", "Binary");
         process("Numeric_Type", "UCD", "Numeric", "Enumerated");
@@ -516,16 +531,16 @@ public enum PropertyStatus {
         process("kOtherNumeric", "UCD", "Numeric", "Enumerated");
         process("kPrimaryNumeric", "UCD", "Numeric", "Enumerated");
         process("Join_Control", "UCD", "Shaping_and_Rendering", "Binary");
-        process("East_Asian_Width", "UCD", "Shaping_and_Rendering", "Enumerated");
-        process("Grapheme_Cluster_Break", "UCD", "Shaping_and_Rendering", "Enumerated");
+        process("East_Asian_Width", "UAX11", "Shaping_and_Rendering", "Enumerated");
+        process("Grapheme_Cluster_Break", "UAX29", "Shaping_and_Rendering", "Enumerated");
         process("Joining_Group", "UCD", "Shaping_and_Rendering", "Enumerated");
         process("Joining_Type", "UCD", "Shaping_and_Rendering", "Enumerated");
-        process("Line_Break", "UCD", "Shaping_and_Rendering", "Enumerated");
-        process("Sentence_Break", "UCD", "Shaping_and_Rendering", "Enumerated");
-        process("Word_Break", "UCD", "Shaping_and_Rendering", "Enumerated");
+        process("Line_Break", "UAX14", "Shaping_and_Rendering", "Enumerated");
+        process("Sentence_Break", "UAX29", "Shaping_and_Rendering", "Enumerated");
+        process("Word_Break", "UAX29", "Shaping_and_Rendering", "Enumerated");
         process("Prepended_Concatenation_Mark", "UCD", "Shaping_and_Rendering", "Enumerated");
         process("Standardized_Variant", "UCD", "Shaping_and_Rendering", "Enumerated");
-        process("Vertical_Orientation", "UCD", "Shaping_and_Rendering", "Enumerated");
+        process("Vertical_Orientation", "UAX50", "Shaping_and_Rendering", "Enumerated");
         process("isUppercase", "Unicode", "Case", "Binary");
         process("isTitlecase", "Unicode", "Case", "Binary");
         process("isLowercase", "Unicode", "Case", "Binary");
@@ -549,6 +564,11 @@ public enum PropertyStatus {
         process("Emoji_Presentation", "UTS", "Emoji", "Binary");
         process("Emoji_All", "UTS", "Emoji", "Binary");
         process("Emoji_Component", "UTS", "Emoji", "Binary");
+        
+        process("Emoji_DCM", "UTS", "Emoji", "Binary");
+        process("Emoji_KDDI", "UTS", "Emoji", "Binary");
+        process("Emoji_SB", "UTS", "Emoji", "Binary");
+        
         process("Extended_Pictographic", "UTS", "Emoji", "Binary");
         process("Basic_Emoji", "UTS", "Emoji", "Binary");
         process("RGI_Emoji_Flag_Sequence", "UTS", "Emoji", "Binary");
@@ -556,6 +576,7 @@ public enum PropertyStatus {
         process("RGI_Emoji_Modifier_Sequence", "UTS", "Emoji", "Binary");
         process("RGI_Emoji_Zwj_Sequence", "UTS", "Emoji", "Binary");
         process("RGI_Emoji_Tag_Sequence", "UTS", "Emoji", "Binary");
+        
         process("Idn_2008", "UTS", "IDNA", "Enumerated");
         process("uts46", "UTS", "IDNA", "Enumerated");
         process("idna2008c", "UTS", "IDNA", "Enumerated");
@@ -572,9 +593,10 @@ public enum PropertyStatus {
         process("ANY", "UTS", "Regex", "Binary");
         process("ASCII", "UTS", "Regex", "Binary");
         process("bmp", "UTS", "Regex", "Binary");
-        process("Identifier_Status", "UTS", "Security", "Enumerated");
-        process("Identifier_Type", "UTS", "Security", "Enumerated");
-        process("confusable", "UTS", "Security", "Enumerated");
+        process("Identifier_Status", "UTS39", "Security", "Enumerated");
+        process("Identifier_Type", "UTS39", "Security", "Enumerated");
+        process("Confusable_MA", "UTS39", "Security", "Enumerated");
+        process("confusable", "UTS39", "Security", "Enumerated");
         process("uca", "UTS", "UCA", "Binary");
         process("uca2", "UTS", "UCA", "Binary");
         process("uca2.5", "UTS", "UCA", "Binary");
@@ -582,6 +604,149 @@ public enum PropertyStatus {
         process("HanType", "Extra", "CJK", "Enumerated");
     }
 
+    public enum PropertyCodomain {character, string}
+    
+    public static final class RegexInfo {
+        public final PropertyScope scope;
+        public final PropertyCodomain codomain;
+        
+        public RegexInfo(PropertyScope scope, PropertyCodomain range) {
+            this.scope = scope;
+            this.codomain = range;
+        }
+        
+        @Override
+        public String toString() {
+            // TODO Auto-generated method stub
+            return scope + " " + codomain;
+        }
+    }
+    private static Map<UcdProperty,RegexInfo> REGEX_PROPS;
+    static {
+        String[][]regexData = {
+                {"Bidi_Class", "Bidirectional", ""},
+                {"Bidi_Control", "Bidirectional", ""},
+                {"Bidi_Mirrored", "Bidirectional", ""},
+                {"Bidi_Mirroring_Glyph", "Bidirectional", ""},
+                {"Bidi_Paired_Bracket", "Bidirectional", ""},
+                {"Bidi_Paired_Bracket_Type", "Bidirectional", ""},
+                {"Uppercase", "Case", ""},
+                {"Lowercase", "Case", ""},
+                {"Simple_Lowercase_Mapping", "Case", ""},
+                {"Simple_Titlecase_Mapping", "Case", ""},
+                {"Simple_Uppercase_Mapping", "Case", ""},
+                {"Simple_Case_Folding", "Case", ""},
+                {"Soft_Dotted", "Case", ""},
+                {"Cased", "Case", ""},
+                {"Case_Ignorable", "Case", ""},
+                {"Changes_When_Lowercased", "Case", ""},
+                {"Changes_When_Uppercased", "Case", ""},
+                {"Changes_When_Titlecased", "Case", ""},
+                {"Changes_When_Casefolded", "Case", ""},
+                {"Changes_When_Casemapped", "Case", ""},
+                {"Ideographic", "CJK", ""},
+                {"Unified_Ideograph", "CJK", ""},
+                {"Radical", "CJK", ""},
+                {"IDS_Binary_Operator", "CJK", ""},
+                {"IDS_Trinary_Operator", "CJK", ""},
+                {"Equivalent_Unified_Ideograph", "CJK", ""},
+                {"IDS_Unary_Operator", "CJK", ""},
+                {"IDS_Unary_Operator", "CJK", ""},
+                {"Emoji", "Emoji", ""},
+                {"Emoji_Presentation", "Emoji", ""},
+                {"Emoji_Modifier", "Emoji", ""},
+                {"Emoji_Modifier_Base", "Emoji", ""},
+                {"Emoji_Component", "Emoji", ""},
+                {"Extended_Pictographic", "Emoji", ""},
+                {"Basic_Emoji", "Emoji", "string"},
+                {"Emoji_Keycap_Sequence", "Emoji", "string"},
+                {"RGI_Emoji_Modifier_Sequence", "Emoji", "string"},
+                {"RGI_Emoji_Flag_Sequence", "Emoji", "string"},
+                {"RGI_Emoji_Tag_Sequence", "Emoji", "string"},
+                {"RGI_Emoji_ZWJ_Sequence", "Emoji", "string"},
+                {"RGI_Emoji", "Emoji", "string"},
+                {"Name", "General", ""},
+                {"Name_Alias", "General", ""},
+                {"Block", "General", ""},
+                {"Age", "General", ""},
+                {"General_Category", "General", ""},
+                {"Script", "General", ""},
+                {"Script_Extensions", "General", ""},
+                {"White_Space", "General", ""},
+                {"Alphabetic", "General", ""},
+                {"Hangul_Syllable_Type", "General", ""},
+                {"Noncharacter_Code_Point", "General", ""},
+                {"Default_Ignorable_Code_Point", "General", ""},
+                {"Deprecated", "General", ""},
+                {"Logical_Order_Exception", "General", ""},
+                {"Variation_Selector", "General", ""},
+                {"ID_Continue", "Identifiers", ""},
+                {"ID_Start", "Identifiers", ""},
+                {"XID_Continue", "Identifiers", ""},
+                {"XID_Start", "Identifiers", ""},
+                {"Pattern_Syntax", "Identifiers", ""},
+                {"Pattern_White_Space", "Identifiers", ""},
+                {"Identifier_Status", "Identifiers", ""},
+                {"Identifier_Type", "Identifiers", ""},
+                {"ID_Compat_Math_Start", "Identifiers", ""},
+                {"ID_Compat_Math_Continue", "Identifiers", ""},
+                {"Math", "Miscellaneous", ""},
+                {"Quotation_Mark", "Miscellaneous", ""},
+                {"Dash", "Miscellaneous", ""},
+                {"Sentence_Terminal", "Miscellaneous", ""},
+                {"Terminal_Punctuation", "Miscellaneous", ""},
+                {"Diacritic", "Miscellaneous", ""},
+                {"Extender", "Miscellaneous", ""},
+                {"Grapheme_Base", "Miscellaneous", ""},
+                {"Grapheme_Extend", "Miscellaneous", ""},
+                {"Regional_Indicator", "Emoji", ""}, // fixed
+                {"Canonical_Combining_Class", "Normalization", ""},
+                {"Decomposition_Type", "Normalization", ""},
+                {"NFC_Quick_Check", "Normalization", ""},
+                {"NFKC_Quick_Check", "Normalization", ""},
+                {"NFD_Quick_Check", "Normalization", ""},
+                {"NFKD_Quick_Check", "Normalization", ""},
+                {"NFKC_Casefold", "Normalization", ""},
+                {"Changes_When_NFKC_Casefolded", "Normalization", ""},
+                {"NFKC_Simple_Casefold", "Normalization", ""},
+                {"Numeric_Value", "Numeric", ""},
+                {"Numeric_Type", "Numeric", ""},
+                {"Hex_Digit", "Numeric", ""},
+                {"ASCII_Hex_Digit", "Numeric", ""},
+                {"Join_Control", "Shaping and Rendering", ""},
+                {"Joining_Group", "Shaping and Rendering", ""},
+                {"Joining_Type", "Shaping and Rendering", ""},
+                {"Vertical_Orientation", "Shaping and Rendering", ""},
+                {"Line_Break", "Shaping and Rendering", ""},
+                {"Grapheme_Cluster_Break", "Shaping and Rendering", ""},
+                {"Sentence_Break", "Shaping and Rendering", ""},
+                {"Word_Break", "Shaping and Rendering", ""},
+                {"East_Asian_Width", "Shaping and Rendering", ""},
+                {"Prepended_Concatenation_Mark", "Shaping and Rendering", ""},
+        };
+        
+        Map<UcdProperty,RegexInfo> _REGEX_PROPS = new TreeMap<>();
+        
+        for (String[] row : regexData) {
+            UcdProperty prop = UcdProperty.forString(row[0]);
+            if (prop == null) {
+                System.err.println("# Missing UcdProperty for " + Arrays.asList(row));
+                continue;
+            }
+            String scopeString = UCharacter.toTitleCase(row[1], null);
+            PropertyScope scope = scopeString.equals("Shaping And Rendering") ? PropertyScope.Shaping_and_Rendering 
+                    : scopeString.equals("Cjk") ? PropertyScope.CJK
+                    : PropertyScope.valueOf(scopeString);
+            PropertyCodomain codomain = row[2].isBlank() ? PropertyCodomain.character : PropertyCodomain.string;
+            _REGEX_PROPS.put(prop, new RegexInfo(scope, codomain));
+        }
+        REGEX_PROPS = ImmutableMap.copyOf(_REGEX_PROPS);
+    }
+    
+    public static RegexInfo getRegexInfo(UcdProperty prop) {
+        return REGEX_PROPS.get(prop);
+    }
+    
     public static void main(String[] args) {
         Set<String> props = new TreeSet<>();
         props.addAll(DATATYPE.keySet());

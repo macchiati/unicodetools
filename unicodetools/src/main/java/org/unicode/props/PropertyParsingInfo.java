@@ -268,6 +268,9 @@ public class PropertyParsingInfo implements Comparable<PropertyParsingInfo> {
     }
 
     public String normalizeAndVerify(String string) {
+        if (property == UcdProperty.kTotalStrokes) {
+            int debug = 0;
+        }
         switch (property.getType()) {
             case Enumerated:
             case Catalog:
@@ -305,13 +308,18 @@ public class PropertyParsingInfo implements Comparable<PropertyParsingInfo> {
                     }
                 }
                 break;
+            case Unknown:
+                break;
         }
         return string;
     }
 
-    static Splitter BAR = Splitter.on('|').trimResults();
+    static Splitter BAR = Splitter.on(IndexUnicodeProperties.SET_SEPARATOR).trimResults();
 
     public String normalizeEnum(String string) {
+        if (property == UcdProperty.kTotalStrokes) {
+            int debug = 0;
+        }
         if (getMultivalued().isBreakable(string)) {
             final PropertyParsingInfo propInfo =
                     property == UcdProperty.Script_Extensions
@@ -795,7 +803,7 @@ public class PropertyParsingInfo implements Comparable<PropertyParsingInfo> {
                     line,
                     indexUnicodeProperties,
                     propInfoSet,
-                    IndexUnicodeProperties.ALPHABETIC_JOINER,
+                    IndexUnicodeProperties.MULTIVALUE_JOINER,
                     false);
         }
     }

@@ -1,9 +1,12 @@
 package org.unicode.props;
 
+import com.ibm.icu.dev.util.CollectionUtilities;
 import com.ibm.icu.dev.util.UnicodeMap;
 import com.ibm.icu.text.UnicodeSet;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.TreeSet;
 import org.unicode.text.utility.Utility;
 
 public class PropertyUtilities {
@@ -26,6 +29,23 @@ public class PropertyUtilities {
             return first + separator + second;
         }
     }
+
+    public static final class SortingJoiner implements Merge<String> {
+        TreeSet<String> sorted = new TreeSet<String>();
+        String separator;
+
+        public SortingJoiner(String separator) {
+            this.separator = separator;
+        }
+        
+        @Override
+        public String merge(String first, String second) {
+            sorted.clear();
+            sorted.addAll(Arrays.asList(first.split(separator)));
+            sorted.addAll(Arrays.asList(second.split(separator)));
+            return CollectionUtilities.join(sorted, separator);
+        }
+    };
 
     static final <K, V, M extends Map<K, V>> M putNew(M map, K key, V value) {
         final V oldValue = map.get(key);
